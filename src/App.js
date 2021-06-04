@@ -97,6 +97,7 @@ function RoomSelect() {
   console.log(users)
 
   const [KEY, setKEY] = useLocalStorage("AdminPrivateKEY")
+  const [publicKEY, setPublicKEY] = useLocalStorage("AdminPublicKEY")
   const [strKEY, setStrKey] = useLocalStorage("StrAdminPrivateKey")
   useEffect(() => {
     if(!KEY)
@@ -104,12 +105,31 @@ function RoomSelect() {
       key = new NodeRSA({b:512});
       //await //------------send public key to firebase------------
       setKEY(key.exportKey('pkcs1-private-der'));
+      setPublicKEY(key.exportKey('pkcs1-public-der'));
       console.log('Here we set the private key in binary. now saving string');
       setStrKey(key.exportKey('pkcs1-private-der').toString('base64'));
     }
+
     // USE THE KEY HERE
     console.log(KEY);
   }, [KEY])
+
+  useEffect(()=>{
+    if(!publicKEY)
+      return;
+
+    console.log(publicKEY.toString("base64"))
+    try {
+      console.log({PublicKey:publicKEY});
+      
+      if(publicKEY.toString('base64') != "[object Object]")
+      firestore.collection("Admin").doc("AdminPublicKey").set({PublicKey:(publicKEY.toString('base64'))})
+    } catch (error) {
+      console.log(error.message)
+    }
+  },[publicKEY])
+
+  
 
   const [room,setRoom] = useState("");
   return (
